@@ -1,9 +1,11 @@
 <script>
 	import Header from './components/Header.svelte'
+	import ParksList from './components/ParksList.svelte'
 </script>
 
 <main>
 	<Header />
+	<ParksList />
 </main>
 
 <style>
