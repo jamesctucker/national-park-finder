@@ -1,13 +1,26 @@
-
 <script>
+    import ParkCard from './ParkCard.svelte'
+
     const apiKey = process.env.NPS_API_KEY
     let parks = [];
+    let isLoading = false;
+    let isError = false;
+    let error = '';
     let selection = '';
 	const fetchParks = async () => {
-        const response = await fetch(`https://developer.nps.gov/api/v1/parks?stateCode=${selection}&limit=50&api_key=${apiKey}`);
-        let data = await response.json();
-
-        parks = data.data.filter(item => item.designation === 'National Park')
+        isLoading = true;
+        isError - false;
+        try {
+            const response = await fetch(`https://developer.nps.gov/api/v1/parks?stateCode=${selection}&limit=50&api_key=${apiKey}`);
+            let data = await response.json();
+            parks = data.data.filter(item => item.designation === 'National Park');
+            isLoading = false;
+        } catch(error) {
+            console.error(error)
+            isLoading = false;
+            isError = true
+            error = 'Sorry, there was an issue loading your results.'
+        }
     }
     
     const states = [
@@ -61,22 +74,66 @@
     ]
 </script>
 
-{#if parks}
-	{#each parks as park, index}
-        <p>{park.fullName}</p>
-    {/each}
-{/if}
+<section>
+    <select 
+        name="state selector" 
+        class="state-selector"
+        bind:value={selection}
+    >
+        {#each states as state, index}
+            <option value={state.code}>{state.name}</option>
+        {/each}
+    </select>
 
-<select 
-    name="state selector" 
-    id="state-selector"
-    bind:value={selection}
->
-    {#each states as state, index}
-        <option value={state.code}>{state.name}</option>
-    {/each}
-</select>
+    <button on:click={fetchParks} class="fetch-park-btn">Search</button>
 
-<button on:click={fetchParks}>Get Parks</button>
+    <div class="card-container">
+        {#if isLoading} 
+            <p>loading...</p>
+        {:else if isError}
+            <p>{error}</p>
+        {:else}
+            {#each parks as park, index}
+                <ParkCard park={park} />
+            {/each}
+        {/if}
+        </div>
+</section>
+
+<style>
+    .card-container {
+        display: flex;
+        flex-flow: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .state-selector {
+        margin: 1.5rem 0rem;
+        padding: .5rem;
+        font-family: 'Lato', sans-serif;
+        font-size: 1.25em;
+    }
+
+    .fetch-park-btn {
+        padding: .25rem;
+        min-width: 100px;
+        background-color: crimson;
+        color: white;
+        border-radius: 3px;
+        font-family: 'Lato', sans-serif;
+        font-size: 1.25em;
+    }
+
+    .fetch-park-btn:hover {
+        border: 1px solid crimson;
+        background-color: white;
+        color: crimson;
+    }
+
+</style>
+
+
 
 
